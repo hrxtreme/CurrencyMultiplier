@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Currency Multiplier Calculator - Independent Lists</title>
+    <title>Currency Multiplier Calculator - with Sorting</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -29,6 +29,17 @@
             top: 0;
             z-index: 10;
         }
+        .sort-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: inherit;
+            color: inherit;
+            padding: 0;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
@@ -48,8 +59,18 @@
                         <table class="w-full text-sm text-left text-gray-600">
                             <thead class="text-xs text-gray-700 uppercase">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 min-w-[200px] bg-gray-200">Currency</th>
-                                    <th scope="col" class="px-6 py-3 text-center bg-gray-200">Multiplier</th>
+                                    <th scope="col" class="px-6 py-3 min-w-[200px] bg-gray-200">
+                                        <button id="lvc-sort-name" class="sort-button">
+                                            Currency
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                        </button>
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-center bg-gray-200">
+                                        <button id="lvc-sort-multiplier" class="sort-button">
+                                            Multiplier
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                        </button>
+                                    </th>
                                     <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Min Bet</th>
                                     <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Default Bet</th>
                                     <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Maximum Bet</th>
@@ -71,14 +92,30 @@
                         <table class="w-full text-sm text-left text-gray-600">
                             <thead class="text-xs text-gray-700 uppercase">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 min-w-[200px] bg-gray-200">Currency</th>
-                                    <th scope="col" class="px-6 py-3 text-center bg-gray-200">Multiplier</th>
+                                    <th scope="col" class="px-6 py-3 min-w-[200px] bg-gray-200">
+                                        <button id="std-sort-name" class="sort-button">
+                                            Currency
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                        </button>
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-center bg-gray-200">
+                                        <button id="std-sort-multiplier" class="sort-button">
+                                            Multiplier
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                        </button>
+                                    </th>
                                     <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Min Bet</th>
                                     <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Default Bet</th>
                                     <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Maximum Bet</th>
                                 </tr>
                             </thead>
-                            <tbody id="standard-currency-table-body">
+                            <!-- 
+                                FIX: The ID was changed from 'standard-currency-table-body' to 'std-currency-table-body'
+                                to match the ID being targeted by the JavaScript 'sortTable' function.
+                                The JavaScript uses the prefix 'std' to build the ID, so it was looking for 
+                                'std-currency-table-body', which didn't exist, causing the error.
+                            -->
+                            <tbody id="std-currency-table-body">
                                 <!-- Standard Currency rows will be dynamically inserted here -->
                             </tbody>
                         </table>
@@ -95,7 +132,7 @@
 
     <script>
         // --- DATA ---
-        const lvcCurrencies = [
+        const originalLvcCurrencies = [
             { name: 'USD', multiplier: 1, symbol: '$' },
             { name: 'MYR - Malaysian Ringgit', multiplier: 5, symbol: 'RM' },
             { name: 'THB - Thai Baht', multiplier: 50, symbol: '฿' },
@@ -116,7 +153,7 @@
             { name: 'VND - Vietnamese Dong', multiplier: 10000, symbol: '₫', symbolPosition: 'after' }
         ];
         
-        const standardCurrencies = [
+        const originalStandardCurrencies = [
             { name: 'USD - United States Dollar', multiplier: 1, symbol: '$' },
             { name: 'ARS - Argentine Peso', multiplier: 200, symbol: '$' },
             { name: 'BRL - Brazilian Real', multiplier: 5, symbol: 'R$' },
@@ -152,6 +189,16 @@
             { name: 'NGN - Nigerian Naira', multiplier: 100, symbol: '₦' }
         ];
 
+        // Create working copies of the data to be sorted
+        let lvcCurrencies = [...originalLvcCurrencies];
+        let standardCurrencies = [...originalStandardCurrencies];
+
+        // State to track sorting order [0: default, 1: asc, 2: desc]
+        const sortState = {
+            lvc: { name: 0, multiplier: 0 },
+            std: { name: 0, multiplier: 0 }
+        };
+
         // --- FUNCTIONS ---
 
         /**
@@ -164,9 +211,6 @@
 
         /**
          * Formats the final value with its currency symbol in the correct position.
-         * @param {number} value - The numeric value.
-         * @param {object} currency - The currency object.
-         * @returns {string} - The formatted string with symbol.
          */
         function formatCurrencyValue(value, currency) {
             const formattedNum = formatNumber(value);
@@ -178,7 +222,6 @@
 
         /**
          * Calculates and updates the bet values for a specific table.
-         * @param {string} prefix - The prefix for the table ('lvc' or 'std').
          */
         function calculateValues(prefix) {
             const usdMinBet = parseFloat(document.getElementById(`${prefix}-usd-min`).value) || 0;
@@ -212,21 +255,19 @@
 
         /**
          * Creates and populates a table with a given list of currencies.
-         * @param {HTMLElement} tableBody - The tbody element to populate.
-         * @param {Array} currencyList - The list of currencies for this table.
-         * @param {string} prefix - The prefix for element IDs ('lvc' or 'std').
          */
         function createTable(tableBody, currencyList, prefix) {
+            tableBody.innerHTML = ''; // Clear existing table rows
             currencyList.forEach((currency, index) => {
                 const row = document.createElement('tr');
                 row.className = 'bg-white border-b hover:bg-gray-50';
-                const multiplierDisplay = currency.displayMultiplier || currency.multiplier;
+                const multiplierDisplay = currency.displayMultiplier || (typeof currency.multiplier === 'object' ? currency.multiplier.min : currency.multiplier);
 
                 if (currency.name.startsWith('USD')) {
                     row.className += ' bg-yellow-50 font-semibold';
                     row.innerHTML = `
                         <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${currency.name}</td>
-                        <td class="px-6 py-4 text-center">${multiplierDisplay}</td>
+                        <td class="px-6 py-4 text-center">${currency.displayMultiplier || currency.multiplier}</td>
                         <td class="px-6 py-4">
                             <div class="relative">
                                 <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">${currency.symbol}</span>
@@ -259,16 +300,75 @@
             });
         }
 
+        /**
+         * Sorts a currency list and redraws the table.
+         * @param {string} prefix - 'lvc' or 'std'.
+         * @param {string} column - 'name' or 'multiplier'.
+         */
+        function sortTable(prefix, column) {
+            const state = sortState[prefix];
+            const currencyList = (prefix === 'lvc') ? lvcCurrencies : standardCurrencies;
+            const tableBody = document.getElementById(`${prefix}-currency-table-body`);
+
+            // If the script fails to find the table body, exit early to prevent errors.
+            if (!tableBody) {
+                console.error(`Could not find table body with ID: ${prefix}-currency-table-body`);
+                return;
+            }
+
+            // Cycle through sort states
+            state[column] = (state[column] + 1) % 3;
+            // Reset other column's sort state
+            const otherColumn = column === 'name' ? 'multiplier' : 'name';
+            state[otherColumn] = 0;
+
+            const usdEntry = currencyList.find(c => c.name.startsWith('USD'));
+            const otherCurrencies = currencyList.filter(c => !c.name.startsWith('USD'));
+
+            if (state[column] === 0) { // Revert to original by creating a fresh copy
+                const originalCopy = (prefix === 'lvc') ? [...originalLvcCurrencies] : [...originalStandardCurrencies];
+                if (prefix === 'lvc') lvcCurrencies = originalCopy;
+                else standardCurrencies = originalCopy;
+            } else {
+                otherCurrencies.sort((a, b) => {
+                    let valA, valB;
+                    if (column === 'name') {
+                        valA = a.name.toLowerCase();
+                        valB = b.name.toLowerCase();
+                    } else { // multiplier
+                        valA = (typeof a.multiplier === 'object') ? a.multiplier.min : a.multiplier;
+                        valB = (typeof b.multiplier === 'object') ? b.multiplier.min : b.multiplier;
+                    }
+
+                    if (valA < valB) return state[column] === 1 ? -1 : 1;
+                    if (valA > valB) return state[column] === 1 ? 1 : -1;
+                    return 0;
+                });
+                const sortedList = [usdEntry, ...otherCurrencies];
+                if (prefix === 'lvc') lvcCurrencies = sortedList;
+                else standardCurrencies = sortedList;
+            }
+            
+            createTable(tableBody, (prefix === 'lvc' ? lvcCurrencies : standardCurrencies), prefix);
+            calculateValues(prefix);
+        }
+
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
             const lvcTableBody = document.getElementById('lvc-currency-table-body');
-            const standardTableBody = document.getElementById('standard-currency-table-body');
+            const standardTableBody = document.getElementById('std-currency-table-body');
             
             createTable(lvcTableBody, lvcCurrencies, 'lvc');
             createTable(standardTableBody, standardCurrencies, 'std');
             
             calculateValues('lvc');
             calculateValues('std');
+
+            // Add event listeners for sort buttons
+            document.getElementById('lvc-sort-name').addEventListener('click', () => sortTable('lvc', 'name'));
+            document.getElementById('lvc-sort-multiplier').addEventListener('click', () => sortTable('lvc', 'multiplier'));
+            document.getElementById('std-sort-name').addEventListener('click', () => sortTable('std', 'name'));
+            document.getElementById('std-sort-multiplier').addEventListener('click', () => sortTable('std', 'multiplier'));
         });
     </script>
 
