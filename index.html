@@ -3,31 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Currency Multiplier Calculator - with Sorting</title>
+    <title>Currency Multiplier Calculator - Redesigned</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* A slightly lighter gray */
         }
-        /* Custom styles for better input appearance */
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
+        /* Remove ugly number input spinners */
+        input[type="number"] { -moz-appearance: textfield; }
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button {
             -webkit-appearance: none;
             margin: 0;
         }
-        /* Ensure sticky header works */
+        /* Custom styles for the table and sorting */
         .table-container {
-            max-height: 60vh; /* Adjust height as needed */
+            height: 60vh; /* Use fixed height to ensure containers are equal */
             overflow-y: auto;
+            border: 1px solid #e5e7eb; /* Softer border */
+            border-radius: 0.75rem; /* Match parent container */
         }
         thead th {
             position: sticky;
             top: 0;
             z-index: 10;
+            background-color: #f9fafb; /* Lighter header bg */
         }
         .sort-button {
             background: none;
@@ -35,48 +37,94 @@
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.25rem;
-            font-weight: inherit;
-            color: inherit;
+            gap: 0.5rem; /* More space for icon */
+            font-weight: 600; /* Bolder header text */
+            color: #374151; /* Darker gray for text */
             padding: 0;
+            transition: color 0.2s ease;
+        }
+        .sort-button:hover {
+            color: #1d4ed8; /* Blue on hover */
+        }
+        .sort-icon {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        /* Styling for different sort states */
+        .sort-button[data-sort-state="none"] .sort-icon { opacity: 0.3; }
+        .sort-button[data-sort-state="asc"] .sort-icon { opacity: 1; transform: rotate(0deg); color: #2563eb; }
+        .sort-button[data-sort-state="desc"] .sort-icon { opacity: 1; transform: rotate(180deg); color: #2563eb; }
+
+        /* Smooth transition for table rows */
+        tbody tr {
+            transition: background-color 0.15s ease-in-out;
+        }
+        /* Tooltip for special currencies */
+        .tooltip {
+            position: relative;
+            cursor: help;
+            display: inline-block;
+        }
+        .tooltip-text {
+            visibility: hidden;
+            width: 220px;
+            background-color: #1f2937;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 10;
+            bottom: 115%; /* Position it just above the text */
+            left: 50%;
+            transform: translateX(-50%); /* Use transform for better centering */
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none; /* Prevents tooltip from interfering with hover */
+        }
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800">
+<body class="text-gray-800">
 
-    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
-        <header class="text-center mb-8">
+    <div class="w-full mx-auto p-4 sm:p-8 lg:p-12">
+        <header class="text-center mb-10">
             <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Currency Multiplier Calculator</h1>
-            <p class="text-md text-gray-600 mt-2">Enter USD bet values in each table to see the calculated amounts for that list.</p>
+            <p class="text-md text-gray-600 mt-2">Enter USD bet values to see the calculated amounts for each currency list.</p>
         </header>
 
         <div class="flex flex-wrap -mx-4">
             <!-- LVC Currencies Table -->
             <div class="w-full lg:w-1/2 px-4 mb-8 lg:mb-0">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">LVC Currencies</h2>
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">LVC Currencies</h2>
+                    <button id="lvc-reset-sort" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">Reset Sort</button>
+                </div>
+                <div class="bg-white rounded-xl shadow-xl overflow-hidden">
                     <div class="table-container">
-                        <table class="w-full text-sm text-left text-gray-600">
-                            <thead class="text-xs text-gray-700 uppercase">
+                        <table class="w-full text-sm text-left text-gray-700">
+                            <thead class="text-xs text-gray-500 uppercase tracking-wider">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 min-w-[200px] bg-gray-200">
-                                        <button id="lvc-sort-name" class="sort-button">
-                                            Currency
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                    <th scope="col" class="px-6 py-4">
+                                        <button id="lvc-sort-name" class="sort-button" data-sort-state="none">
+                                            <span>Currency</span>
+                                            <svg class="w-4 h-4 sort-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </button>
                                     </th>
-                                    <th scope="col" class="px-6 py-3 text-center bg-gray-200">
-                                        <button id="lvc-sort-multiplier" class="sort-button">
-                                            Multiplier
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                    <th scope="col" class="px-6 py-4 text-center">
+                                        <button id="lvc-sort-multiplier" class="sort-button" data-sort-state="none">
+                                            <span>Multiplier</span>
+                                            <svg class="w-4 h-4 sort-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </button>
                                     </th>
-                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Min Bet</th>
-                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Default Bet</th>
-                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Maximum Bet</th>
+                                    <th scope="col" class="px-6 py-4 text-center min-w-[110px]">Min Bet</th>
+                                    <th scope="col" class="px-6 py-4 text-center min-w-[110px]">Default Bet</th>
+                                    <th scope="col" class="px-6 py-4 text-center min-w-[110px]">Maximum Bet</th>
                                 </tr>
                             </thead>
-                            <tbody id="lvc-currency-table-body">
+                            <tbody id="lvc-currency-table-body" class="divide-y divide-gray-200">
                                 <!-- LVC Currency rows will be dynamically inserted here -->
                             </tbody>
                         </table>
@@ -86,36 +134,33 @@
 
             <!-- Standard Currencies Table -->
             <div class="w-full lg:w-1/2 px-4">
-                 <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Currencies</h2>
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Currencies</h2>
+                    <button id="std-reset-sort" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">Reset Sort</button>
+                </div>
+                <div class="bg-white rounded-xl shadow-xl overflow-hidden">
                     <div class="table-container">
-                        <table class="w-full text-sm text-left text-gray-600">
-                            <thead class="text-xs text-gray-700 uppercase">
+                        <table class="w-full text-sm text-left text-gray-700">
+                            <thead class="text-xs text-gray-500 uppercase tracking-wider">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 min-w-[200px] bg-gray-200">
-                                        <button id="std-sort-name" class="sort-button">
-                                            Currency
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                    <th scope="col" class="px-6 py-4">
+                                        <button id="std-sort-name" class="sort-button" data-sort-state="none">
+                                            <span>Currency</span>
+                                            <svg class="w-4 h-4 sort-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </button>
                                     </th>
-                                    <th scope="col" class="px-6 py-3 text-center bg-gray-200">
-                                        <button id="std-sort-multiplier" class="sort-button">
-                                            Multiplier
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" /></svg>
+                                    <th scope="col" class="px-6 py-4 text-center">
+                                        <button id="std-sort-multiplier" class="sort-button" data-sort-state="none">
+                                            <span>Multiplier</span>
+                                            <svg class="w-4 h-4 sort-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
                                         </button>
                                     </th>
-                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Min Bet</th>
-                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Default Bet</th>
-                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Maximum Bet</th>
+                                    <th scope="col" class="px-6 py-4 text-center min-w-[110px]">Min Bet</th>
+                                    <th scope="col" class="px-6 py-4 text-center min-w-[110px]">Default Bet</th>
+                                    <th scope="col" class="px-6 py-4 text-center min-w-[110px]">Maximum Bet</th>
                                 </tr>
                             </thead>
-                            <!-- 
-                                FIX: The ID was changed from 'standard-currency-table-body' to 'std-currency-table-body'
-                                to match the ID being targeted by the JavaScript 'sortTable' function.
-                                The JavaScript uses the prefix 'std' to build the ID, so it was looking for 
-                                'std-currency-table-body', which didn't exist, causing the error.
-                            -->
-                            <tbody id="std-currency-table-body">
+                            <tbody id="std-currency-table-body" class="divide-y divide-gray-200">
                                 <!-- Standard Currency rows will be dynamically inserted here -->
                             </tbody>
                         </table>
@@ -124,16 +169,17 @@
             </div>
         </div>
 
-        <footer class="text-center mt-8 text-sm text-gray-500">
-            <p>Calculations for each table are independent and based on the USD values in that table.</p>
-            <p class="mt-2">* Indicates a special multiplier rule (Min/Max).</p>
+        <footer class="text-center mt-10 text-sm text-gray-500">
+            <p>Calculations for each table are independent and based on the USD values in that table. * Indicates a special multiplier rule (Min/Max). Hover for details.</p>
+        <!--<p class="mt-2">* Indicates a special multiplier rule (Min/Max). Hover for details.</p> -->
+            <p class="mt-2"><a href="https://gamesglobal.atlassian.net/wiki/spaces/PMR/pages/231093823/Currency+Multipliers" class="text-blue-600 hover:text-blue-800">Confluence Page Link</a></p>
         </footer>
     </div>
 
     <script>
         // --- DATA ---
         const originalLvcCurrencies = [
-            { name: 'USD', multiplier: 1, symbol: '$' },
+            { name: 'USD - United States Dollar', multiplier: 1, symbol: '$' },
             { name: 'MYR - Malaysian Ringgit', multiplier: 5, symbol: 'RM' },
             { name: 'THB - Thai Baht', multiplier: 50, symbol: '฿' },
             { name: 'CLP - Chilean Peso', multiplier: 500, symbol: '$' },
@@ -169,7 +215,7 @@
             { name: 'SEK - Swedish Krona', multiplier: 10, symbol: 'KR', symbolPosition: 'after' },
             { name: 'CHF - Swiss Franc', multiplier: 1, symbol: 'CHF' },
             { name: 'THB - Thai Baht', multiplier: 50, symbol: '฿' },
-            { name: 'CNY - Yuan Renminbi *', multiplier: { min: 5, def: 5, max: 10 }, displayMultiplier: '5/10', symbol: '¥' },
+            { name: 'CNY - Yuan Renminbi *', multiplier: { min: 5, def: 5, max: 10 }, displayMultiplier: '5/10', symbol: '¥', tooltip: 'Uses a multiplier of 5 for Min/Default and 10 for Max.' },
             { name: 'HRK - Croatian Kuna', multiplier: 10, symbol: 'KN', symbolPosition: 'after' },
             { name: 'MMK - Burmese Kyat', multiplier: 1, symbol: 'K' },
             { name: 'KHR - Cambodian Riel', multiplier: 1, symbol: '៛' },
@@ -189,40 +235,27 @@
             { name: 'NGN - Nigerian Naira', multiplier: 100, symbol: '₦' }
         ];
 
-        // Create working copies of the data to be sorted
         let lvcCurrencies = [...originalLvcCurrencies];
         let standardCurrencies = [...originalStandardCurrencies];
 
-        // State to track sorting order [0: default, 1: asc, 2: desc]
+        // State to track sorting: 'none', 'asc', 'desc'
         const sortState = {
-            lvc: { name: 0, multiplier: 0 },
-            std: { name: 0, multiplier: 0 }
+            lvc: { column: 'name', direction: 'none' },
+            std: { column: 'name', direction: 'none' }
         };
 
         // --- FUNCTIONS ---
 
-        /**
-         * Formats a number for display.
-         */
         function formatNumber(num) {
             if (Number.isInteger(num)) return num.toString();
             return parseFloat(num.toFixed(1)).toString();
         }
 
-        /**
-         * Formats the final value with its currency symbol in the correct position.
-         */
         function formatCurrencyValue(value, currency) {
-            const formattedNum = formatNumber(value);
-            if (currency.symbolPosition === 'after') {
-                return `${formattedNum} ${currency.symbol}`;
-            }
-            return `${currency.symbol} ${formattedNum}`;
+            const formattedNum = new Intl.NumberFormat().format(formatNumber(value));
+            return currency.symbolPosition === 'after' ? `${formattedNum} ${currency.symbol}` : `${currency.symbol}${formattedNum}`;
         }
-
-        /**
-         * Calculates and updates the bet values for a specific table.
-         */
+        
         function calculateValues(prefix) {
             const usdMinBet = parseFloat(document.getElementById(`${prefix}-usd-min`).value) || 0;
             const usdDefBet = parseFloat(document.getElementById(`${prefix}-usd-def`).value) || 0;
@@ -231,11 +264,11 @@
             const currencyList = (prefix === 'lvc') ? lvcCurrencies : standardCurrencies;
 
             currencyList.forEach((currency, index) => {
-                if (currency.name.startsWith('USD')) return;
+                const row = document.getElementById(`${prefix}-row-${index}`);
+                if (!row || currency.name.startsWith('USD')) return;
 
                 let minMultiplier, defMultiplier, maxMultiplier;
-
-                if (typeof currency.multiplier === 'object' && currency.multiplier !== null) {
+                if (typeof currency.multiplier === 'object') {
                     minMultiplier = currency.multiplier.min;
                     defMultiplier = currency.multiplier.def;
                     maxMultiplier = currency.multiplier.max;
@@ -243,53 +276,57 @@
                     minMultiplier = defMultiplier = maxMultiplier = currency.multiplier;
                 }
 
-                const newMin = usdMinBet * minMultiplier;
-                const newDef = usdDefBet * defMultiplier;
-                const newMax = usdMaxBet * maxMultiplier;
-                
-                document.getElementById(`${prefix}-min-${index}`).textContent = formatCurrencyValue(newMin, currency);
-                document.getElementById(`${prefix}-def-${index}`).textContent = formatCurrencyValue(newDef, currency);
-                document.getElementById(`${prefix}-max-${index}`).textContent = formatCurrencyValue(newMax, currency);
+                document.getElementById(`${prefix}-min-${index}`).textContent = formatCurrencyValue(usdMinBet * minMultiplier, currency);
+                document.getElementById(`${prefix}-def-${index}`).textContent = formatCurrencyValue(usdDefBet * defMultiplier, currency);
+                document.getElementById(`${prefix}-max-${index}`).textContent = formatCurrencyValue(usdMaxBet * maxMultiplier, currency);
             });
         }
 
-        /**
-         * Creates and populates a table with a given list of currencies.
-         */
         function createTable(tableBody, currencyList, prefix) {
             tableBody.innerHTML = ''; // Clear existing table rows
             currencyList.forEach((currency, index) => {
                 const row = document.createElement('tr');
-                row.className = 'bg-white border-b hover:bg-gray-50';
-                const multiplierDisplay = currency.displayMultiplier || (typeof currency.multiplier === 'object' ? currency.multiplier.min : currency.multiplier);
+                row.id = `${prefix}-row-${index}`;
+                // Zebra striping
+                row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+
+                const multiplierDisplay = currency.displayMultiplier || (typeof currency.multiplier === 'object' ? currency.multiplier.def : currency.multiplier);
+
+                let currencyNameHTML = currency.name;
+                if (currency.tooltip) {
+                    currencyNameHTML = `
+                        <span class="tooltip">${currency.name}
+                            <span class="tooltip-text">${currency.tooltip}</span>
+                        </span>`;
+                }
 
                 if (currency.name.startsWith('USD')) {
-                    row.className += ' bg-yellow-50 font-semibold';
+                    row.className = 'bg-blue-50 font-semibold border-y-2 border-blue-200';
                     row.innerHTML = `
-                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${currency.name}</td>
-                        <td class="px-6 py-4 text-center">${currency.displayMultiplier || currency.multiplier}</td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-3 font-bold text-blue-800 whitespace-nowrap">${currencyNameHTML}</td>
+                        <td class="px-6 py-3 text-center">${multiplierDisplay}</td>
+                        <td class="px-6 py-2">
                             <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">${currency.symbol}</span>
-                                <input type="number" id="${prefix}-usd-min" value="0.1" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-center pl-8" oninput="calculateValues('${prefix}')">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-xs">${currency.symbol}</span>
+                                <input type="number" id="${prefix}-usd-min" value="0.1" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2 text-center pl-7" oninput="calculateValues('${prefix}')">
                             </div>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-2">
                              <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">${currency.symbol}</span>
-                                <input type="number" id="${prefix}-usd-def" value="2" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-center pl-8" oninput="calculateValues('${prefix}')">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-xs">${currency.symbol}</span>
+                                <input type="number" id="${prefix}-usd-def" value="2" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2 text-center pl-7" oninput="calculateValues('${prefix}')">
                             </div>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-2">
                              <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">${currency.symbol}</span>
-                                <input type="number" id="${prefix}-usd-max" value="30" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-center pl-8" oninput="calculateValues('${prefix}')">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 text-xs">${currency.symbol}</span>
+                                <input type="number" id="${prefix}-usd-max" value="30" class="w-full bg-white border border-gray-300 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-2 text-center pl-7" oninput="calculateValues('${prefix}')">
                             </div>
                         </td>
                     `;
                 } else {
                     row.innerHTML = `
-                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${currency.name}</td>
+                        <td class="px-6 py-4 font-medium text-gray-800 whitespace-nowrap">${currencyNameHTML}</td>
                         <td class="px-6 py-4 text-center">${multiplierDisplay}</td>
                         <td id="${prefix}-min-${index}" class="px-6 py-4 text-center font-medium"></td>
                         <td id="${prefix}-def-${index}" class="px-6 py-4 text-center font-medium"></td>
@@ -298,77 +335,96 @@
                 }
                 tableBody.appendChild(row);
             });
+            updateSortIcons(prefix);
         }
 
-        /**
-         * Sorts a currency list and redraws the table.
-         * @param {string} prefix - 'lvc' or 'std'.
-         * @param {string} column - 'name' or 'multiplier'.
-         */
+        function updateSortIcons(prefix) {
+            const state = sortState[prefix];
+            ['name', 'multiplier'].forEach(col => {
+                const button = document.getElementById(`${prefix}-sort-${col}`);
+                if (col === state.column) {
+                    button.setAttribute('data-sort-state', state.direction);
+                } else {
+                    button.setAttribute('data-sort-state', 'none');
+                }
+            });
+        }
+
         function sortTable(prefix, column) {
             const state = sortState[prefix];
+            const directions = ['none', 'asc', 'desc'];
+            let nextDirection = 'asc';
+
+            if (state.column === column) {
+                const currentIndex = directions.indexOf(state.direction);
+                nextDirection = directions[(currentIndex + 1) % directions.length];
+            }
+            
+            state.column = column;
+            state.direction = nextDirection;
+            
             const currencyList = (prefix === 'lvc') ? lvcCurrencies : standardCurrencies;
             const tableBody = document.getElementById(`${prefix}-currency-table-body`);
-
-            // If the script fails to find the table body, exit early to prevent errors.
-            if (!tableBody) {
-                console.error(`Could not find table body with ID: ${prefix}-currency-table-body`);
-                return;
-            }
-
-            // Cycle through sort states
-            state[column] = (state[column] + 1) % 3;
-            // Reset other column's sort state
-            const otherColumn = column === 'name' ? 'multiplier' : 'name';
-            state[otherColumn] = 0;
 
             const usdEntry = currencyList.find(c => c.name.startsWith('USD'));
             const otherCurrencies = currencyList.filter(c => !c.name.startsWith('USD'));
 
-            if (state[column] === 0) { // Revert to original by creating a fresh copy
-                const originalCopy = (prefix === 'lvc') ? [...originalLvcCurrencies] : [...originalStandardCurrencies];
-                if (prefix === 'lvc') lvcCurrencies = originalCopy;
-                else standardCurrencies = originalCopy;
-            } else {
-                otherCurrencies.sort((a, b) => {
-                    let valA, valB;
-                    if (column === 'name') {
-                        valA = a.name.toLowerCase();
-                        valB = b.name.toLowerCase();
-                    } else { // multiplier
-                        valA = (typeof a.multiplier === 'object') ? a.multiplier.min : a.multiplier;
-                        valB = (typeof b.multiplier === 'object') ? b.multiplier.min : b.multiplier;
-                    }
-
-                    if (valA < valB) return state[column] === 1 ? -1 : 1;
-                    if (valA > valB) return state[column] === 1 ? 1 : -1;
-                    return 0;
-                });
-                const sortedList = [usdEntry, ...otherCurrencies];
-                if (prefix === 'lvc') lvcCurrencies = sortedList;
-                else standardCurrencies = sortedList;
+            if (state.direction === 'none') {
+                resetSort(prefix); // Use reset logic if we cycle back to 'none'
+                return;
             }
+
+            otherCurrencies.sort((a, b) => {
+                let valA, valB;
+                if (column === 'name') {
+                    valA = a.name.toLowerCase();
+                    valB = b.name.toLowerCase();
+                } else { // multiplier
+                    valA = (typeof a.multiplier === 'object') ? a.multiplier.def : a.multiplier;
+                    valB = (typeof b.multiplier === 'object') ? b.multiplier.def : b.multiplier;
+                }
+                
+                const directionMultiplier = state.direction === 'asc' ? 1 : -1;
+                if (valA < valB) return -1 * directionMultiplier;
+                if (valA > valB) return 1 * directionMultiplier;
+                return 0;
+            });
+
+            const sortedList = [usdEntry, ...otherCurrencies];
+            if (prefix === 'lvc') lvcCurrencies = sortedList; else standardCurrencies = sortedList;
             
-            createTable(tableBody, (prefix === 'lvc' ? lvcCurrencies : standardCurrencies), prefix);
+            createTable(tableBody, sortedList, prefix);
             calculateValues(prefix);
+        }
+
+        function resetSort(prefix) {
+            if (prefix === 'lvc') {
+                lvcCurrencies = [...originalLvcCurrencies];
+                sortState.lvc = { column: 'name', direction: 'none' };
+                createTable(document.getElementById('lvc-currency-table-body'), lvcCurrencies, 'lvc');
+                calculateValues('lvc');
+            } else {
+                standardCurrencies = [...originalStandardCurrencies];
+                sortState.std = { column: 'name', direction: 'none' };
+                createTable(document.getElementById('std-currency-table-body'), standardCurrencies, 'std');
+                calculateValues('std');
+            }
         }
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            const lvcTableBody = document.getElementById('lvc-currency-table-body');
-            const standardTableBody = document.getElementById('std-currency-table-body');
-            
-            createTable(lvcTableBody, lvcCurrencies, 'lvc');
-            createTable(standardTableBody, standardCurrencies, 'std');
-            
-            calculateValues('lvc');
-            calculateValues('std');
+            resetSort('lvc');
+            resetSort('std');
 
             // Add event listeners for sort buttons
             document.getElementById('lvc-sort-name').addEventListener('click', () => sortTable('lvc', 'name'));
             document.getElementById('lvc-sort-multiplier').addEventListener('click', () => sortTable('lvc', 'multiplier'));
             document.getElementById('std-sort-name').addEventListener('click', () => sortTable('std', 'name'));
             document.getElementById('std-sort-multiplier').addEventListener('click', () => sortTable('std', 'multiplier'));
+
+            // Add event listeners for reset buttons
+            document.getElementById('lvc-reset-sort').addEventListener('click', () => resetSort('lvc'));
+            document.getElementById('std-reset-sort').addEventListener('click', () => resetSort('std'));
         });
     </script>
 
