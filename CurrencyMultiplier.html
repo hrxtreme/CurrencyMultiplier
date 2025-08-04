@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Multiplier Calculator - Independent Lists</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for better input appearance */
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* Ensure sticky header works */
+        .table-container {
+            max-height: 60vh; /* Adjust height as needed */
+            overflow-y: auto;
+        }
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Currency Multiplier Calculator</h1>
+            <p class="text-md text-gray-600 mt-2">Enter USD bet values in each table to see the calculated amounts for that list.</p>
+        </header>
+
+        <div class="flex flex-wrap -mx-4">
+            <!-- LVC Currencies Table -->
+            <div class="w-full lg:w-1/2 px-4 mb-8 lg:mb-0">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">LVC Currencies</h2>
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="table-container">
+                        <table class="w-full text-sm text-left text-gray-600">
+                            <thead class="text-xs text-gray-700 uppercase">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 min-w-[200px] bg-gray-200">Currency</th>
+                                    <th scope="col" class="px-6 py-3 text-center bg-gray-200">Multiplier</th>
+                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Min Bet</th>
+                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Default Bet</th>
+                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Maximum Bet</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lvc-currency-table-body">
+                                <!-- LVC Currency rows will be dynamically inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Standard Currencies Table -->
+            <div class="w-full lg:w-1/2 px-4">
+                 <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Currencies</h2>
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="table-container">
+                        <table class="w-full text-sm text-left text-gray-600">
+                            <thead class="text-xs text-gray-700 uppercase">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 min-w-[200px] bg-gray-200">Currency</th>
+                                    <th scope="col" class="px-6 py-3 text-center bg-gray-200">Multiplier</th>
+                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Min Bet</th>
+                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Default Bet</th>
+                                    <th scope="col" class="px-6 py-3 text-center min-w-[110px] bg-gray-200">Maximum Bet</th>
+                                </tr>
+                            </thead>
+                            <tbody id="standard-currency-table-body">
+                                <!-- Standard Currency rows will be dynamically inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center mt-8 text-sm text-gray-500">
+            <p>Calculations for each table are independent and based on the USD values in that table.</p>
+            <p class="mt-2">* Indicates a special multiplier rule (Min/Max).</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const lvcCurrencies = [
+            { name: 'USD', multiplier: 1, symbol: '$' },
+            { name: 'MYR - Malaysian Ringgit', multiplier: 5, symbol: 'RM' },
+            { name: 'THB - Thai Baht', multiplier: 50, symbol: '฿' },
+            { name: 'CLP - Chilean Peso', multiplier: 500, symbol: '$' },
+            { name: 'RWF - Rwandan Franc', multiplier: 500, symbol: 'FRW' },
+            { name: 'NGN - Nigerian Naira', multiplier: 500, symbol: '₦' },
+            { name: 'KRW - Korean Won', multiplier: 1000, symbol: '₩' },
+            { name: 'KHR - Cambodian Riel', multiplier: 1000, symbol: '៛' },
+            { name: 'MMK - Burmese Kyat', multiplier: 1000, symbol: 'K' },
+            { name: 'LAK - Lao Kip', multiplier: 1000, symbol: '₭' },
+            { name: 'TZS - Tanzanian Shilling', multiplier: 1000, symbol: 'TZS' },
+            { name: 'UZS - Uzbekistan Sum', multiplier: 1000, symbol: 'UZS', symbolPosition: 'after' },
+            { name: 'COP - Colombian Peso', multiplier: 1000, symbol: '$' },
+            { name: 'UGX - Ugandan Shilling', multiplier: 1000, symbol: 'USH' },
+            { name: 'GNF - Guinean Franc', multiplier: 2000, symbol: 'FG' },
+            { name: 'PYG - Paraguayan Guarani', multiplier: 5000, symbol: '₲' },
+            { name: 'IDR - Indonesian Rupiah', multiplier: 10000, symbol: 'RP' },
+            { name: 'VND - Vietnamese Dong', multiplier: 10000, symbol: '₫', symbolPosition: 'after' }
+        ];
+        
+        const standardCurrencies = [
+            { name: 'USD - United States Dollar', multiplier: 1, symbol: '$' },
+            { name: 'ARS - Argentine Peso', multiplier: 200, symbol: '$' },
+            { name: 'BRL - Brazilian Real', multiplier: 5, symbol: 'R$' },
+            { name: 'BGN - Bulgarian Lev', multiplier: 1, symbol: 'лв', symbolPosition: 'after' },
+            { name: 'GBP - Pound Sterling', multiplier: 1, symbol: '£' },
+            { name: 'CAD - Canadian Dollar', multiplier: 1, symbol: '$' },
+            { name: 'DKK - Danish Krone', multiplier: 10, symbol: 'KR' },
+            { name: 'EUR - Euro', multiplier: 1, symbol: '€' },
+            { name: 'JPY - Japanese Yen', multiplier: 100, symbol: '¥' },
+            { name: 'PEN - Peruvian Nuevo Sol', multiplier: 5, symbol: 'S/' },
+            { name: 'RUB - Russian Ruble', multiplier: 100, symbol: '₽', symbolPosition: 'after' },
+            { name: 'ZAR - South African Rand', multiplier: 10, symbol: 'R' },
+            { name: 'SEK - Swedish Krona', multiplier: 10, symbol: 'KR', symbolPosition: 'after' },
+            { name: 'CHF - Swiss Franc', multiplier: 1, symbol: 'CHF' },
+            { name: 'THB - Thai Baht', multiplier: 50, symbol: '฿' },
+            { name: 'CNY - Yuan Renminbi *', multiplier: { min: 5, def: 5, max: 10 }, displayMultiplier: '5/10', symbol: '¥' },
+            { name: 'HRK - Croatian Kuna', multiplier: 10, symbol: 'KN', symbolPosition: 'after' },
+            { name: 'MMK - Burmese Kyat', multiplier: 1, symbol: 'K' },
+            { name: 'KHR - Cambodian Riel', multiplier: 1, symbol: '៛' },
+            { name: 'IDR - Indonesian Rupiah', multiplier: 200, symbol: 'RP' },
+            { name: 'KRW - Korean Won', multiplier: 200, symbol: '₩' },
+            { name: 'LAK - Lao Kip', multiplier: 1, symbol: '₭' },
+            { name: 'MYR - Malaysian Ringgit', multiplier: 5, symbol: 'RM' },
+            { name: 'VND - Vietnamese Dong', multiplier: 200, symbol: '₫', symbolPosition: 'after' },
+            { name: 'CLP - Chilean Peso', multiplier: 200, symbol: '$' },
+            { name: 'TZS - Tanzanian Shilling', multiplier: 200, symbol: 'TZS' },
+            { name: 'UZS - Uzbekistan Sum', multiplier: 200, symbol: 'UZS', symbolPosition: 'after' },
+            { name: 'COP - Colombian Peso', multiplier: 200, symbol: '$' },
+            { name: 'GNF - Guinean Franc', multiplier: 200, symbol: 'FG' },
+            { name: 'UGX - Ugandan Shilling', multiplier: 200, symbol: 'USH' },
+            { name: 'RWF - Rwandan Franc', multiplier: 200, symbol: 'FRW' },
+            { name: 'PYG - Paraguayan Guarani', multiplier: 200, symbol: '₲' },
+            { name: 'NGN - Nigerian Naira', multiplier: 100, symbol: '₦' }
+        ];
+
+        // --- FUNCTIONS ---
+
+        /**
+         * Formats a number for display.
+         */
+        function formatNumber(num) {
+            if (Number.isInteger(num)) return num.toString();
+            return parseFloat(num.toFixed(1)).toString();
+        }
+
+        /**
+         * Formats the final value with its currency symbol in the correct position.
+         * @param {number} value - The numeric value.
+         * @param {object} currency - The currency object.
+         * @returns {string} - The formatted string with symbol.
+         */
+        function formatCurrencyValue(value, currency) {
+            const formattedNum = formatNumber(value);
+            if (currency.symbolPosition === 'after') {
+                return `${formattedNum} ${currency.symbol}`;
+            }
+            return `${currency.symbol} ${formattedNum}`;
+        }
+
+        /**
+         * Calculates and updates the bet values for a specific table.
+         * @param {string} prefix - The prefix for the table ('lvc' or 'std').
+         */
+        function calculateValues(prefix) {
+            const usdMinBet = parseFloat(document.getElementById(`${prefix}-usd-min`).value) || 0;
+            const usdDefBet = parseFloat(document.getElementById(`${prefix}-usd-def`).value) || 0;
+            const usdMaxBet = parseFloat(document.getElementById(`${prefix}-usd-max`).value) || 0;
+
+            const currencyList = (prefix === 'lvc') ? lvcCurrencies : standardCurrencies;
+
+            currencyList.forEach((currency, index) => {
+                if (currency.name.startsWith('USD')) return;
+
+                let minMultiplier, defMultiplier, maxMultiplier;
+
+                if (typeof currency.multiplier === 'object' && currency.multiplier !== null) {
+                    minMultiplier = currency.multiplier.min;
+                    defMultiplier = currency.multiplier.def;
+                    maxMultiplier = currency.multiplier.max;
+                } else {
+                    minMultiplier = defMultiplier = maxMultiplier = currency.multiplier;
+                }
+
+                const newMin = usdMinBet * minMultiplier;
+                const newDef = usdDefBet * defMultiplier;
+                const newMax = usdMaxBet * maxMultiplier;
+                
+                document.getElementById(`${prefix}-min-${index}`).textContent = formatCurrencyValue(newMin, currency);
+                document.getElementById(`${prefix}-def-${index}`).textContent = formatCurrencyValue(newDef, currency);
+                document.getElementById(`${prefix}-max-${index}`).textContent = formatCurrencyValue(newMax, currency);
+            });
+        }
+
+        /**
+         * Creates and populates a table with a given list of currencies.
+         * @param {HTMLElement} tableBody - The tbody element to populate.
+         * @param {Array} currencyList - The list of currencies for this table.
+         * @param {string} prefix - The prefix for element IDs ('lvc' or 'std').
+         */
+        function createTable(tableBody, currencyList, prefix) {
+            currencyList.forEach((currency, index) => {
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b hover:bg-gray-50';
+                const multiplierDisplay = currency.displayMultiplier || currency.multiplier;
+
+                if (currency.name.startsWith('USD')) {
+                    row.className += ' bg-yellow-50 font-semibold';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${currency.name}</td>
+                        <td class="px-6 py-4 text-center">${multiplierDisplay}</td>
+                        <td class="px-6 py-4">
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">${currency.symbol}</span>
+                                <input type="number" id="${prefix}-usd-min" value="0.1" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-center pl-8" oninput="calculateValues('${prefix}')">
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                             <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">${currency.symbol}</span>
+                                <input type="number" id="${prefix}-usd-def" value="2" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-center pl-8" oninput="calculateValues('${prefix}')">
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                             <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">${currency.symbol}</span>
+                                <input type="number" id="${prefix}-usd-max" value="30" class="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 text-center pl-8" oninput="calculateValues('${prefix}')">
+                            </div>
+                        </td>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <td class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">${currency.name}</td>
+                        <td class="px-6 py-4 text-center">${multiplierDisplay}</td>
+                        <td id="${prefix}-min-${index}" class="px-6 py-4 text-center font-medium"></td>
+                        <td id="${prefix}-def-${index}" class="px-6 py-4 text-center font-medium"></td>
+                        <td id="${prefix}-max-${index}" class="px-6 py-4 text-center font-medium"></td>
+                    `;
+                }
+                tableBody.appendChild(row);
+            });
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const lvcTableBody = document.getElementById('lvc-currency-table-body');
+            const standardTableBody = document.getElementById('standard-currency-table-body');
+            
+            createTable(lvcTableBody, lvcCurrencies, 'lvc');
+            createTable(standardTableBody, standardCurrencies, 'std');
+            
+            calculateValues('lvc');
+            calculateValues('std');
+        });
+    </script>
+
+</body>
+</html>
