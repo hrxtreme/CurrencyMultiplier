@@ -29,7 +29,9 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            background-color: #f9fafb; /* Lighter header bg */
+            /* Highlight for the header row */
+            background-color: #dde8fc; /* A neutral gray highlight (gray-100) */
+            color: #374151; /* A contrasting dark gray text (gray-700) */
         }
         .sort-button {
             background: none;
@@ -39,20 +41,20 @@
             align-items: center;
             gap: 0.5rem; /* More space for icon */
             font-weight: 600; /* Bolder header text */
-            color: #374151; /* Darker gray for text */
+            color: inherit; /* Inherit color from parent th */
             padding: 0;
             transition: color 0.2s ease;
         }
         .sort-button:hover {
-            color: #1d4ed8; /* Blue on hover */
+            color: #111827; /* Brighter indigo on hover (gray-900) */
         }
         .sort-icon {
             transition: opacity 0.2s ease, transform 0.2s ease;
         }
         /* Styling for different sort states */
-        .sort-button[data-sort-state="none"] .sort-icon { opacity: 0.3; }
-        .sort-button[data-sort-state="asc"] .sort-icon { opacity: 1; transform: rotate(0deg); color: #2563eb; }
-        .sort-button[data-sort-state="desc"] .sort-icon { opacity: 1; transform: rotate(180deg); color: #2563eb; }
+        .sort-button[data-sort-state="none"] .sort-icon { opacity: 0.4; }
+        .sort-button[data-sort-state="asc"] .sort-icon { opacity: 1; transform: rotate(0deg); color: #111827; }
+        .sort-button[data-sort-state="desc"] .sort-icon { opacity: 1; transform: rotate(180deg); color: #111827; }
 
         /* Smooth transition for table rows */
         tbody tr {
@@ -104,8 +106,8 @@
                 </div>
                 <div class="bg-white rounded-xl shadow-xl overflow-hidden">
                     <div class="table-container">
-                        <table class="w-full text-sm text-left text-gray-700">
-                            <thead class="text-xs text-gray-500 uppercase tracking-wider">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs uppercase tracking-wider">
                                 <tr>
                                     <th scope="col" class="px-6 py-4">
                                         <button id="lvc-sort-name" class="sort-button" data-sort-state="none">
@@ -140,8 +142,8 @@
                 </div>
                 <div class="bg-white rounded-xl shadow-xl overflow-hidden">
                     <div class="table-container">
-                        <table class="w-full text-sm text-left text-gray-700">
-                            <thead class="text-xs text-gray-500 uppercase tracking-wider">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs uppercase tracking-wider">
                                 <tr>
                                     <th scope="col" class="px-6 py-4">
                                         <button id="std-sort-name" class="sort-button" data-sort-state="none">
@@ -170,9 +172,9 @@
         </div>
 
         <footer class="text-center mt-10 text-sm text-gray-500">
-            <p>Calculations for each table are independent and based on the USD values in that table. <br> * Indicates a special multiplier rule (Min/Max). Hover for details.</p>
-        <!--<p class="mt-2">* Indicates a special multiplier rule (Min/Max). Hover for details.</p> -->
+            <p>Calculations for each table are independent and based on the USD values in that table. <br>* Indicates a special multiplier rule (Min/Max). Hover for details.</p>
             <p class="mt-2"><a href="https://gamesglobal.atlassian.net/wiki/spaces/PMR/pages/231093823/Currency+Multipliers" class="text-blue-600 hover:text-blue-800">Confluence Link</a></p>
+            <p class="mt-2">Made with ❤️ Hrushikesh Tavadarkar ❤️</p>
         </footer>
     </div>
 
