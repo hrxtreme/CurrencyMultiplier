@@ -2,7 +2,10 @@
 
 A user-friendly, client-side tool to calculate currency values based on multipliers against a base USD value. This tool features two separate tables for different currency lists ('LVC' and 'Standard'), with dynamic calculations and interactive sorting.
 
-![Currency Calculator Screenshot](https://i.imgur.com/vL9bJgV.png)
+https://hrxtreme.github.io/CurrencyMultiplier/
+ 
+<img width="1345" height="632" alt="image" src="https://github.com/user-attachments/assets/1448a68a-96f5-4b0c-87c5-8fdf2e0eb37e" />
+
 
 ---
 
