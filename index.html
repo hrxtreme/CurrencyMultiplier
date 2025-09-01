@@ -92,9 +92,25 @@
 <body class="text-gray-800">
 
     <div class="w-full mx-auto p-4 sm:p-8 lg:p-12">
-        <header class="text-center mb-10">
-            <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Currency Multiplier Calculator</h1>
-            <p class="text-md text-gray-600 mt-2">Enter USD bet values to see the calculated amounts for each currency list.</p>
+        <header class="flex justify-between items-center mb-10">
+            <!-- Title (Left Side) -->
+            <div class="w-2/3 pr-8 text-center">
+                <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">Currency Multiplier Calculator</h1>
+                <p class="text-md text-gray-600 mt-2">Enter USD bet values to see the calculated amounts for each currency list.</p>
+            </div>
+            
+            <!-- Search Bar (Right Side) -->
+            <div class="w-1/3">
+                 <label for="search-input" class="sr-only">Search Currencies</label>
+                 <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <input type="text" id="search-input" class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="Search by currency name...">
+                </div>
+            </div>
         </header>
 
         <div class="flex flex-wrap -mx-4">
@@ -174,7 +190,7 @@
         <footer class="text-center mt-10 text-sm text-gray-500">
             <p>Calculations for each table are independent and based on the USD values in that table. <br>* Indicates a special multiplier rule (Min/Max). Hover for details.</p>
             <p class="mt-2"><a href="https://gamesglobal.atlassian.net/wiki/spaces/PMR/pages/231093823/Currency+Multipliers" class="text-blue-600 hover:text-blue-800">Confluence Link</a></p>
-            <p class="mt-2">Made with ❤️ Hrushikesh Tavadarkar ❤️</p>
+            <p class="mt-2">Made with ❤️  ❤️</p>
         </footer>
     </div>
 
@@ -259,9 +275,9 @@
         }
         
         function calculateValues(prefix) {
-            const usdMinBet = parseFloat(document.getElementById(`${prefix}-usd-min`).value) || 0;
-            const usdDefBet = parseFloat(document.getElementById(`${prefix}-usd-def`).value) || 0;
-            const usdMaxBet = parseFloat(document.getElementById(`${prefix}-usd-max`).value) || 0;
+            const usdMinBet = parseFloat(document.getElementById(`${prefix}-usd-min`)?.value) || 0;
+            const usdDefBet = parseFloat(document.getElementById(`${prefix}-usd-def`)?.value) || 0;
+            const usdMaxBet = parseFloat(document.getElementById(`${prefix}-usd-max`)?.value) || 0;
 
             const currencyList = (prefix === 'lvc') ? lvcCurrencies : standardCurrencies;
 
@@ -277,15 +293,23 @@
                 } else {
                     minMultiplier = defMultiplier = maxMultiplier = currency.multiplier;
                 }
+                
+                const minEl = document.getElementById(`${prefix}-min-${index}`);
+                const defEl = document.getElementById(`${prefix}-def-${index}`);
+                const maxEl = document.getElementById(`${prefix}-max-${index}`);
 
-                document.getElementById(`${prefix}-min-${index}`).textContent = formatCurrencyValue(usdMinBet * minMultiplier, currency);
-                document.getElementById(`${prefix}-def-${index}`).textContent = formatCurrencyValue(usdDefBet * defMultiplier, currency);
-                document.getElementById(`${prefix}-max-${index}`).textContent = formatCurrencyValue(usdMaxBet * maxMultiplier, currency);
+                if (minEl) minEl.textContent = formatCurrencyValue(usdMinBet * minMultiplier, currency);
+                if (defEl) defEl.textContent = formatCurrencyValue(usdDefBet * defMultiplier, currency);
+                if (maxEl) maxEl.textContent = formatCurrencyValue(usdMaxBet * maxMultiplier, currency);
             });
         }
 
         function createTable(tableBody, currencyList, prefix) {
             tableBody.innerHTML = ''; // Clear existing table rows
+            if (currencyList.length === 0) {
+                 tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-gray-500">No matching currencies found.</td></tr>`;
+                 return;
+            }
             currencyList.forEach((currency, index) => {
                 const row = document.createElement('tr');
                 row.id = `${prefix}-row-${index}`;
@@ -344,10 +368,12 @@
             const state = sortState[prefix];
             ['name', 'multiplier'].forEach(col => {
                 const button = document.getElementById(`${prefix}-sort-${col}`);
-                if (col === state.column) {
-                    button.setAttribute('data-sort-state', state.direction);
-                } else {
-                    button.setAttribute('data-sort-state', 'none');
+                if (button) {
+                    if (col === state.column) {
+                        button.setAttribute('data-sort-state', state.direction);
+                    } else {
+                        button.setAttribute('data-sort-state', 'none');
+                    }
                 }
             });
         }
@@ -372,8 +398,8 @@
             const otherCurrencies = currencyList.filter(c => !c.name.startsWith('USD'));
 
             if (state.direction === 'none') {
-                resetSort(prefix); // Use reset logic if we cycle back to 'none'
-                return;
+                 handleSearch(); // Re-filter and render based on current search query
+                 return;
             }
 
             otherCurrencies.sort((a, b) => {
@@ -392,7 +418,7 @@
                 return 0;
             });
 
-            const sortedList = [usdEntry, ...otherCurrencies];
+            const sortedList = (usdEntry ? [usdEntry] : []).concat(otherCurrencies);
             if (prefix === 'lvc') lvcCurrencies = sortedList; else standardCurrencies = sortedList;
             
             createTable(tableBody, sortedList, prefix);
@@ -400,23 +426,45 @@
         }
 
         function resetSort(prefix) {
-            if (prefix === 'lvc') {
-                lvcCurrencies = [...originalLvcCurrencies];
+             if (prefix === 'lvc') {
                 sortState.lvc = { column: 'name', direction: 'none' };
-                createTable(document.getElementById('lvc-currency-table-body'), lvcCurrencies, 'lvc');
-                calculateValues('lvc');
             } else {
-                standardCurrencies = [...originalStandardCurrencies];
                 sortState.std = { column: 'name', direction: 'none' };
-                createTable(document.getElementById('std-currency-table-body'), standardCurrencies, 'std');
-                calculateValues('std');
             }
+            handleSearch(); // Re-run search/filter logic which rebuilds the table
+        }
+        
+        function handleSearch() {
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+
+            // Filter LVC Currencies
+            const lvcUsd = originalLvcCurrencies.find(c => c.name.startsWith('USD'));
+            const filteredLvcOthers = query === '' 
+                ? originalLvcCurrencies.filter(c => !c.name.startsWith('USD'))
+                : originalLvcCurrencies.filter(c => !c.name.startsWith('USD') && c.name.toLowerCase().includes(query));
+            lvcCurrencies = [lvcUsd, ...filteredLvcOthers];
+            createTable(document.getElementById('lvc-currency-table-body'), lvcCurrencies, 'lvc');
+            calculateValues('lvc');
+
+            // Filter Standard Currencies
+            const stdUsd = originalStandardCurrencies.find(c => c.name.startsWith('USD'));
+             const filteredStdOthers = query === '' 
+                ? originalStandardCurrencies.filter(c => !c.name.startsWith('USD'))
+                : originalStandardCurrencies.filter(c => !c.name.startsWith('USD') && c.name.toLowerCase().includes(query));
+            standardCurrencies = [stdUsd, ...filteredStdOthers];
+            createTable(document.getElementById('std-currency-table-body'), standardCurrencies, 'std');
+            calculateValues('std');
+            
+            // When a new search is performed, reset the sort state internally but don't re-sort
+            sortState.lvc.direction = 'none';
+            sortState.std.direction = 'none';
+            updateSortIcons('lvc');
+            updateSortIcons('std');
         }
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            resetSort('lvc');
-            resetSort('std');
+            handleSearch(); // Initial table render based on empty search
 
             // Add event listeners for sort buttons
             document.getElementById('lvc-sort-name').addEventListener('click', () => sortTable('lvc', 'name'));
@@ -427,8 +475,12 @@
             // Add event listeners for reset buttons
             document.getElementById('lvc-reset-sort').addEventListener('click', () => resetSort('lvc'));
             document.getElementById('std-reset-sort').addEventListener('click', () => resetSort('std'));
+            
+            // Add event listener for search input
+            document.getElementById('search-input').addEventListener('input', handleSearch);
         });
     </script>
 
 </body>
 </html>
+
